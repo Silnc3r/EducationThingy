@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class SpellingGameManager : MonoBehaviour
@@ -15,6 +16,8 @@ public class SpellingGameManager : MonoBehaviour
     public bool isPlaying;
     public float letterDelay;
     public float letterFallSpeed;
+
+    public List<string> currentLetters = new(); // stores the current on screen letters
 
     [Header("References")]
     public GameObject targetWordParent;
@@ -46,14 +49,16 @@ public class SpellingGameManager : MonoBehaviour
 
     public void DisplayTargetWord()
     {
-        int wordLength = targetWord.Length;
+        float wordLength = targetWord.Length;
 
         //make the position for letters right
+        wordLength *= letters[0].GetComponent<Renderer>().bounds.size.x;
+        Vector3 newPos = new Vector3(targetWordParent.transform.position.x - wordLength/2 + 0.5f, targetWordParent.transform.position.y, targetWordParent.transform.position.z);
 
         foreach (char letter in targetWord)
         {
-            //Debug.Log(letter);
-            Instantiate(letters[LetterToNumber(letter.ToString())], targetWordParent.transform.position, Quaternion.identity, targetWordParent.transform);
+            Instantiate(letters[LetterToNumber(letter.ToString())], newPos, Quaternion.identity, targetWordParent.transform);
+            newPos = new Vector3(newPos.x + letters[0].GetComponent<Renderer>().bounds.size.x, newPos.y, 0);
         }
     }
 
@@ -119,6 +124,8 @@ public class SpellingGameManager : MonoBehaviour
 
         GameObject newLetter = Instantiate(letters[chosenLetter], newPos, Quaternion.identity, letterHolder.transform);
         newLetter.GetComponent<Rigidbody2D>().velocity = new Vector3(newLetter.GetComponent<Rigidbody2D>().velocity.x, letterFallSpeed);
+        currentLetters.Add(NumberToLetter(chosenLetter));
+        newLetter.GetComponent<LetterController>().letter = NumberToLetter(chosenLetter);
 
         //spawns letters as children in the letter holder object
         //determine which letter to spawn
@@ -187,6 +194,66 @@ public class SpellingGameManager : MonoBehaviour
                 return 24;
             case "z":
                 return 25;
+        }
+    }
+    public string NumberToLetter(int number)
+    {
+        switch (number)
+        {
+            default:
+                return "?";
+            case 0:
+                return "a";
+            case 1:
+                return "b";
+            case 2:
+                return "c";
+            case 3:
+                return "d";
+            case 4:
+                return "e";
+            case 5:
+                return "f";
+            case 6:
+                return "g";
+            case 7:
+                return "h";
+            case 8:
+                return "i";
+            case 9:
+                return "j";
+            case 10:
+                return "k";
+            case 11:
+                return "l";
+            case 12:
+                return "m";
+            case 13:
+                return "n";
+            case 14:
+                return "o";
+            case 15:
+                return "p";
+            case 16:
+                return "q";
+            case 17:
+                return "r";
+            case 18:
+                return "s";
+            case 19:
+                return "t";
+            case 20:
+                return "u";
+            case 21:
+                return "v";
+            case 22:
+                return "w";
+            case 23:
+                return "x";
+            case 24:
+                return "y";
+            case 25:
+                return "z";
         }
     }
 }
