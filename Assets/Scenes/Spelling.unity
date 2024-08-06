@@ -501,15 +501,17 @@ MonoBehaviour:
   - {fileID: 3676505875932297026, guid: ee0fd931c45bb9645ab4ed70b06e3023, type: 3}
   - {fileID: 3676505875932297026, guid: 89f4e070cbec7b241adddcd02f31cf58, type: 3}
   letterWeight: 0a0000000500000005000000080000000a0000000400000008000000040000000a00000002000000030000000a000000050000000a0000000a00000005000000010000000a0000000a0000000a0000000a0000000400000004000000020000000400000001000000
-  weightAdjustment: 5
+  weightAdjustment: 30
   targetWord: 
-  targetWordList:
-  - This
-  - That
-  - Other
+  targetWordList: []
+  uncollectedColour: {r: 1, g: 0.5424528, b: 0.5424528, a: 1}
+  collectedColour: {r: 1, g: 1, b: 1, a: 1}
   isPlaying: 1
-  letterDelay: 1
-  letterFallSpeed: -2
+  letterDelay: 0.5
+  letterFallSpeed: -4
+  wordProgress: 0
+  currentLetters: []
+  currentLetterObjs: []
   targetWordParent: {fileID: 760687396}
   letterHolder: {fileID: 446035779}
 --- !u!4 &1127741149

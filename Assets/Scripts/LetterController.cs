@@ -18,5 +18,6 @@ public class LetterController : MonoBehaviour
     public void OnDestroy()
     {
         gm.currentLetters.Remove(letter);
+        gm.currentLetterObjs.Remove(gameObject);
     }
 }

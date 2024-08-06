@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using System.IO;
 
 public class SpellingGameManager : MonoBehaviour
 {
@@ -12,12 +13,18 @@ public class SpellingGameManager : MonoBehaviour
     public string targetWord;
     public List<string> targetWordList = new();
 
+    public Color uncollectedColour;
+    public Color collectedColour;
+
     [Header("GamePlay")]
     public bool isPlaying;
     public float letterDelay;
     public float letterFallSpeed;
 
+    public int wordProgress;
+
     public List<string> currentLetters = new(); // stores the current on screen letters
+    public List<GameObject> currentLetterObjs = new(); // stores the object of the letters
 
     [Header("References")]
     public GameObject targetWordParent;
@@ -33,22 +40,74 @@ public class SpellingGameManager : MonoBehaviour
 
     private void Update()
     {
+        LetterPressDetection();
 
+        if (targetWord.Length == wordProgress)
+        {
+            CompletedWord();
+        }
     }
 
     public void GetWordList()
     {
-        //gets words from a word doc and adds them to the targetWordList array
+        string path = "Assets/Resources/words.txt";
+
+        if (!File.Exists(path))
+        {
+            Debug.LogError("File not found at: " + path);
+            return;
+        }
+
+        StreamReader reader = new StreamReader(path);
+        string line;
+
+        while ((line = reader.ReadLine()) != null)
+        {
+            if (IsValidWord(line))
+            {
+                targetWordList.Add(line.ToLower());
+            }
+        }
+
+        reader.Close();
+    }
+
+    private bool IsValidWord(string word)
+    {
+        foreach (char c in word)
+        {
+            if (!char.IsLetter(c))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void CompletedWord()
+    {
+        //add score once have score setup
+        wordProgress = 0;
+
+        NewWord();
+        DisplayTargetWord();
     }
 
     public void NewWord()
     {
+        Debug.Log("New Word");
+
         int i = Random.Range(0, targetWordList.Count);
         targetWord = targetWordList[i];
     }
 
     public void DisplayTargetWord()
     {
+        foreach(Transform child in targetWordParent.transform)
+        {
+            Destroy(child.gameObject);
+        }
+        
         float wordLength = targetWord.Length;
 
         //make the position for letters right
@@ -57,8 +116,41 @@ public class SpellingGameManager : MonoBehaviour
 
         foreach (char letter in targetWord)
         {
-            Instantiate(letters[LetterToNumber(letter.ToString())], newPos, Quaternion.identity, targetWordParent.transform);
+            GameObject newLetter = Instantiate(letters[LetterToNumber(letter.ToString())], newPos, Quaternion.identity, targetWordParent.transform);
             newPos = new Vector3(newPos.x + letters[0].GetComponent<Renderer>().bounds.size.x, newPos.y, 0);
+            newLetter.GetComponent<SpriteRenderer>().color = uncollectedColour;
+        }
+    }
+
+    public void LetterPressDetection()
+    {
+        string pressedLetter = "";
+
+        foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
+        {
+            if (Input.GetKeyDown(keyCode))
+            {
+                if (LetterCheck(keyCode.ToString()))
+                {
+                    pressedLetter = keyCode.ToString().ToLower();
+                    //Debug.Log("Button pressed: " + pressedLetter);
+                    for (int i = 0; i < currentLetters.Count; i++)
+                    {
+                        if (pressedLetter == currentLetters[i])
+                        {
+                            //Destroy(currentLetterObjs[i]);
+                            if (pressedLetter == targetWord[wordProgress].ToString().ToLower())
+                            {
+                                Debug.Log("Button pressed: " + pressedLetter);
+                                wordProgress++;
+                                Destroy(currentLetterObjs[i]);
+
+                                targetWordParent.transform.GetChild(wordProgress -1).GetComponent<SpriteRenderer>().color = collectedColour;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -125,6 +217,7 @@ public class SpellingGameManager : MonoBehaviour
         GameObject newLetter = Instantiate(letters[chosenLetter], newPos, Quaternion.identity, letterHolder.transform);
         newLetter.GetComponent<Rigidbody2D>().velocity = new Vector3(newLetter.GetComponent<Rigidbody2D>().velocity.x, letterFallSpeed);
         currentLetters.Add(NumberToLetter(chosenLetter));
+        currentLetterObjs.Add(newLetter);
         newLetter.GetComponent<LetterController>().letter = NumberToLetter(chosenLetter);
 
         //spawns letters as children in the letter holder object
@@ -255,5 +348,38 @@ public class SpellingGameManager : MonoBehaviour
             case 25:
                 return "z";
         }
+    }
+    public bool LetterCheck(string possibleLetter)
+    {
+        possibleLetter = possibleLetter.ToLower();
+
+        if (possibleLetter == "a" || 
+            possibleLetter == "b" || 
+            possibleLetter == "c" || 
+            possibleLetter == "d" || 
+            possibleLetter == "e" || 
+            possibleLetter == "f" || 
+            possibleLetter == "g" || 
+            possibleLetter == "h" || 
+            possibleLetter == "i" || 
+            possibleLetter == "j" || 
+            possibleLetter == "k" || 
+            possibleLetter == "l" || 
+            possibleLetter == "m" || 
+            possibleLetter == "n" || 
+            possibleLetter == "o" || 
+            possibleLetter == "p" || 
+            possibleLetter == "q" || 
+            possibleLetter == "r" || 
+            possibleLetter == "s" || 
+            possibleLetter == "t" || 
+            possibleLetter == "u" || 
+            possibleLetter == "v" || 
+            possibleLetter == "w" || 
+            possibleLetter == "x" || 
+            possibleLetter == "y" || 
+            possibleLetter == "z"){
+            return true;
+        }else return false;
     }
 }
