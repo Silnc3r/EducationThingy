@@ -179,6 +179,12 @@ public class SpellingGameManager : MonoBehaviour
                     weightTotal += weightAdjustment;
                 }
             }
+            if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
+            {
+                Debug.Log(targetWord[wordProgress]);
+                weightTotal += weightAdjustment/2;
+            }
+
             weightTotal += letterWeight[i];
         }
 
@@ -194,6 +200,10 @@ public class SpellingGameManager : MonoBehaviour
                 {
                     weightProgress += weightAdjustment;
                 }
+            }
+            if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
+            {
+                weightTotal += weightAdjustment/2;
             }
             weightProgress += letterWeight[i];
 
