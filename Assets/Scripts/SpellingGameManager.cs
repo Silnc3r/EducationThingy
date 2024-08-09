@@ -54,7 +54,7 @@ public class SpellingGameManager : MonoBehaviour
 
         if (!File.Exists(path))
         {
-            Debug.LogError("File not found at: " + path);
+            Debug.Log("File not found at: " + path);
             return;
         }
 
@@ -95,7 +95,7 @@ public class SpellingGameManager : MonoBehaviour
 
     public void NewWord()
     {
-        Debug.Log("New Word");
+        //Debug.Log("New Word");
 
         int i = Random.Range(0, targetWordList.Count);
         targetWord = targetWordList[i];
@@ -181,7 +181,7 @@ public class SpellingGameManager : MonoBehaviour
             }
             if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
             {
-                Debug.Log(targetWord[wordProgress]);
+                //Debug.Log(targetWord[wordProgress]);
                 weightTotal += weightAdjustment/2;
             }
 
@@ -203,7 +203,7 @@ public class SpellingGameManager : MonoBehaviour
             }
             if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
             {
-                weightTotal += weightAdjustment/2;
+                weightProgress += weightAdjustment/2;
             }
             weightProgress += letterWeight[i];
 
@@ -224,6 +224,8 @@ public class SpellingGameManager : MonoBehaviour
 
         Vector3 newPos = new Vector3(horPos, vertPos, 0);
 
+        //Debug.Log(chosenLetter);
+        if (chosenLetter == -1) { Debug.Log(letterInt + " : " + weightProgress + " : " + weightTotal); }
         GameObject newLetter = Instantiate(letters[chosenLetter], newPos, Quaternion.identity, letterHolder.transform);
         newLetter.GetComponent<Rigidbody2D>().velocity = new Vector3(newLetter.GetComponent<Rigidbody2D>().velocity.x, letterFallSpeed);
         currentLetters.Add(NumberToLetter(chosenLetter));
