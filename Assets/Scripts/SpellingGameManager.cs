@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using System.IO;
+using TMPro;
 
 public class SpellingGameManager : MonoBehaviour
 {
@@ -21,6 +22,13 @@ public class SpellingGameManager : MonoBehaviour
     public float letterDelay;
     public float letterFallSpeed;
 
+    public float letterRightScore;
+    public float letterWrongScore;
+    public float letterMissScore;
+    public float wordFinishMultiplier;
+    public float scoreMultiplier;
+    
+    public float score;
     public int wordProgress;
 
     public List<string> currentLetters = new(); // stores the current on screen letters
@@ -29,6 +37,9 @@ public class SpellingGameManager : MonoBehaviour
     [Header("References")]
     public GameObject targetWordParent;
     public GameObject letterHolder;
+
+    public TMP_Text scoreText;
+    public TMP_Text timerText;
 
     private void Start()
     {
@@ -89,6 +100,7 @@ public class SpellingGameManager : MonoBehaviour
         //add score once have score setup
         wordProgress = 0;
 
+        ScoreUpdate(wordFinishMultiplier * targetWord.Length * scoreMultiplier);
         NewWord();
         DisplayTargetWord();
     }
@@ -141,14 +153,16 @@ public class SpellingGameManager : MonoBehaviour
                             //Destroy(currentLetterObjs[i]);
                             if (pressedLetter == targetWord[wordProgress].ToString().ToLower())
                             {
-                                Debug.Log("Button pressed: " + pressedLetter);
+                                //Debug.Log("Button pressed: " + pressedLetter);
                                 wordProgress++;
                                 Destroy(currentLetterObjs[i]);
 
                                 targetWordParent.transform.GetChild(wordProgress -1).GetComponent<SpriteRenderer>().color = collectedColour;
+                                ScoreUpdate(letterRightScore * scoreMultiplier);
                             }
                         }
                     }
+                    //detect if the needed letter is on screen then if any other key is pressed do wrong letter score
                 }
             }
         }
@@ -237,6 +251,12 @@ public class SpellingGameManager : MonoBehaviour
         //temporarily adjust the weight of the letters in the word so it's less likely useless letters show up
         //spawn letter
         //letters fall (of their own accord)
+    }
+
+    public void ScoreUpdate(float change)
+    {
+        score += change;
+        scoreText.text = "Score: " + score.ToString();
     }
 
     public int LetterToNumber(string letter)

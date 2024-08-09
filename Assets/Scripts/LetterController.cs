@@ -19,5 +19,11 @@ public class LetterController : MonoBehaviour
     {
         gm.currentLetters.Remove(letter);
         gm.currentLetterObjs.Remove(gameObject);
+
+        if (letter == gm.targetWord[gm.wordProgress].ToString().ToLower())
+        {
+            gm.ScoreUpdate(gm.letterMissScore * gm.scoreMultiplier);
+            Debug.Log("Missed Letter");
+        }
     }
 }
