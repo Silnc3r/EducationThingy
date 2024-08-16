@@ -27,7 +27,12 @@ public class SpellingGameManager : MonoBehaviour
     public float letterMissScore;
     public float wordFinishMultiplier;
     public float scoreMultiplier;
-    
+
+    public float timerLength;
+    public float timerCurrent;
+    public float minutes {get; private set;}
+    public float seconds {get; private set;}
+
     public float score;
     public int wordProgress;
 
@@ -47,6 +52,7 @@ public class SpellingGameManager : MonoBehaviour
         NewWord();
         DisplayTargetWord();
         StartCoroutine(SpawnLetterLoop());
+        TimerStart();
     }
 
     private void Update()
@@ -146,6 +152,9 @@ public class SpellingGameManager : MonoBehaviour
                 {
                     pressedLetter = keyCode.ToString().ToLower();
                     //Debug.Log("Button pressed: " + pressedLetter);
+
+                    bool rightLetter = false;
+
                     for (int i = 0; i < currentLetters.Count; i++)
                     {
                         if (pressedLetter == currentLetters[i])
@@ -159,10 +168,16 @@ public class SpellingGameManager : MonoBehaviour
 
                                 targetWordParent.transform.GetChild(wordProgress -1).GetComponent<SpriteRenderer>().color = collectedColour;
                                 ScoreUpdate(letterRightScore * scoreMultiplier);
+                                rightLetter = true;
                             }
                         }
                     }
-                    //detect if the needed letter is on screen then if any other key is pressed do wrong letter score
+
+                    if (!rightLetter)
+                    {
+                        ScoreUpdate(letterWrongScore * scoreMultiplier);
+                        //Debug.Log("Wrong Letter: " + pressedLetter);
+                    }
                 }
             }
         }
@@ -183,23 +198,29 @@ public class SpellingGameManager : MonoBehaviour
     public void SpawnLetter()
     {
         int weightTotal = 0;
+        int currentLetterWeight = 0;
 
         for (int i = 0; i < letters.Length; i++)
         {
-            foreach (char l in targetWord)
+            for (int j = wordProgress; i < targetWord.Length; j++)
             {
-                if (LetterToNumber(l.ToString()) == i)
+                if (j == i)
                 {
-                    weightTotal += weightAdjustment;
+                    currentLetterWeight += weightAdjustment; // add the weight to letters left in the word
                 }
             }
             if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
             {
                 //Debug.Log(targetWord[wordProgress]);
-                weightTotal += weightAdjustment/2;
+                currentLetterWeight += weightAdjustment/2; // add half the weight to the current letter needed
             }
 
-            weightTotal += letterWeight[i];
+            currentLetterWeight += letterWeight[i]; // all letters get their base value
+
+            Debug.Log("Letter: " + NumberToLetter(i) + " : " + currentLetterWeight);
+
+            weightTotal += currentLetterWeight;
+             
         }
 
         int chosenLetter = -1;
@@ -251,6 +272,60 @@ public class SpellingGameManager : MonoBehaviour
         //temporarily adjust the weight of the letters in the word so it's less likely useless letters show up
         //spawn letter
         //letters fall (of their own accord)
+    }
+
+    public void TimerStart()
+    {
+        timerCurrent = timerLength;
+        StartCoroutine(Timer());
+    }
+
+    public void TimerDisplay()
+    {
+        string secondsString = "";
+        string minutesString = "";
+
+        if (seconds < 10)
+        {
+            secondsString = "0" + seconds.ToString();
+        }
+        else
+        {
+            secondsString = seconds.ToString();
+        }
+        if (minutes < 10)
+        {
+            minutesString = "0" + minutes.ToString();
+        }
+        else
+        {
+            minutesString = minutes.ToString();
+        }
+
+        timerText.text = minutesString + " : " + secondsString;
+    }
+
+    public IEnumerator Timer()
+    {
+        while (timerCurrent > 0)
+        {
+            if (isPlaying)
+            {
+                timerCurrent--;
+
+                seconds = timerCurrent;
+                minutes = 0;
+                while (seconds > 60)
+                {
+                    seconds -= 60;
+                    minutes++;
+                }
+
+                TimerDisplay();
+
+                yield return new WaitForSeconds(1f);
+            }
+        }
     }
 
     public void ScoreUpdate(float change)

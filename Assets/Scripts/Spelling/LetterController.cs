@@ -23,7 +23,7 @@ public class LetterController : MonoBehaviour
         if (letter == gm.targetWord[gm.wordProgress].ToString().ToLower())
         {
             gm.ScoreUpdate(gm.letterMissScore * gm.scoreMultiplier);
-            Debug.Log("Missed Letter");
+            //Debug.Log("Missed Letter");
         }
     }
 }
