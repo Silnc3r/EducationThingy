@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using JetBrains.Annotations;
 
 public class MathsGameManager : MonoBehaviour
 {
@@ -21,6 +22,14 @@ public class MathsGameManager : MonoBehaviour
 
     public GameObject[] numberButtons;
     public GameObject numberButtonsHolder;
+
+    public TMP_Text problemText;
+    public TMP_Text solutionText;
+
+    private void Start()
+    {
+        ChooseNewProblem();
+    }
 
     private void Update()
     {
@@ -46,11 +55,13 @@ public class MathsGameManager : MonoBehaviour
 
     public void EnterSolution()
     {
-        Debug.Log("Entered Solution: " + currentSolution);
+        //Debug.Log("Entered Solution: " + currentSolution);
 
         if (CheckSolution())
         {
             Debug.Log("Correct");
+
+            ChooseNewProblem();
         }
         else
         {
@@ -72,17 +83,60 @@ public class MathsGameManager : MonoBehaviour
 
     public void MakeSolutionNegative()
     {
-        Debug.Log("Solution Made Negative");
+        if (currentSolution.Contains("-"))
+        {
+            currentSolution = currentSolution.Replace("-", "");
+            Debug.Log("Solution Made Positive");
+        }
+        else
+        {
+            currentSolution = "-" + currentSolution;
+            Debug.Log("Solution Made Negative");
+        }
+
+        DisplaySolution();
     }
 
     public void RemoveNumberFromSolution()
     {
-        Debug.Log("Remove Number");
+        if (currentSolution.Length == 1)
+        {
+            currentSolution = "0";
+        }
+        else
+        {
+            currentSolution = currentSolution.Substring(0, currentSolution.Length - 1);
+        }
+
+        DisplaySolution();
+
+        Debug.Log("Removed Last Number");
+    }
+
+    public void ClearSolution()
+    {
+        currentSolution = "0";
+
+        DisplaySolution();
+
+        Debug.Log("Solution Cleared");
     }
 
     public void AddNumberToSolution(int number)
     {
-        Debug.Log("Add: " + number);
+        if (currentSolution != "" && currentSolution != "0")
+        {
+            currentSolution += number.ToString();
+        }
+        else
+        {
+            currentSolution = number.ToString();
+        }
+
+        DisplaySolution();
+
+        Debug.Log("Added: " + number);
+        Debug.Log("New Answer: " + currentSolution);
     }
 
     public void GetProblems()
@@ -92,11 +146,23 @@ public class MathsGameManager : MonoBehaviour
 
     public void ChooseNewProblem()
     {
-        Debug.Log("Choose New Problem");
+        ClearSolution();
+
+        int i = Random.Range(0, problems.Length);
+        string tempString = problems[i];
+
+        currentProblem = tempString.Split('=')[0];
+        correctSolution = tempString.Split('=')[1];
+
+        problemText.text = currentProblem;
+
+        Debug.Log("Chose New Problem: " + currentProblem + " The Solution Is: " + correctSolution);
     }
 
-    public void DisplayProblem()
+    public void DisplaySolution()
     {
-        Debug.Log("Display Problem");
+        solutionText.text = currentSolution;
+
+        Debug.Log("Displayed Problem");
     }
 }

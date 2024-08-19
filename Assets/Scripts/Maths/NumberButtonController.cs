@@ -21,6 +21,9 @@ public class NumberButtonController : MonoBehaviour
     {
         switch (interactType)
         {
+            default:
+                Debug.Log("BUTTON NOT SET ERROR: " + gameObject.name);
+                break;
             case "number":
                 gm.AddNumberToSolution(input);
                 break;
@@ -29,6 +32,9 @@ public class NumberButtonController : MonoBehaviour
                 break;
             case "delete":
                 gm.RemoveNumberFromSolution();
+                break;
+            case "enter":
+                gm.EnterSolution();
                 break;
         }
     }
