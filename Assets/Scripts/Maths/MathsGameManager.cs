@@ -3,31 +3,59 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using JetBrains.Annotations;
+using System.IO;
 
 public class MathsGameManager : MonoBehaviour
 {
-    [Header("Information")]
-    public string[] problems;
+    [Header("Maths Information")]
+    public List<string> problems = new();
     public string currentProblem;
     public string correctSolution;
     public string currentSolution;
 
-    public GameObject[] symbolPrefabs;
-    public GameObject[] solutionSymbols;
+    public Sprite[] negativeButtonSprites;
+
+    [Header("Blocks Information")]
+    public GameObject blockPrefab;
+    public Color[] blockColour;
+
+    public GameObject blockSpawnPosition;
+
+    public float blockFallSpeed;
+    public float blockMoveSpeed;
+
+    public GameObject currentBlock;
+    public bool isDroppingBlock;
+
+    public float highestPoint;
+
+    public float score;
+    public float scoreForBlockSuccess;
+    public float scoreForBlockFailure;
+    public float scoreMultiplier;
+    public float multiplierBreakTime;
+
+    public float timerSeconds;
+    public float timerMinutes;
+    public float timerStarttime; // total length of timer in seconds
 
     [Header("References")]
+    public GameObject viewHolder;
+
     public GameObject problemHolder;
     public GameObject solutionHolder;
-    public GameObject blockHolder;
 
     public GameObject[] numberButtons;
     public GameObject numberButtonsHolder;
 
     public TMP_Text problemText;
     public TMP_Text solutionText;
+    public TMP_Text timerText;
+    public TMP_Text scoreText;
 
     private void Start()
     {
+        GetProblems();
         ChooseNewProblem();
     }
 
@@ -55,17 +83,21 @@ public class MathsGameManager : MonoBehaviour
 
     public void EnterSolution()
     {
-        //Debug.Log("Entered Solution: " + currentSolution);
-
-        if (CheckSolution())
+        if (!isDroppingBlock)
         {
-            Debug.Log("Correct");
+            //Debug.Log("Entered Solution: " + currentSolution);
 
-            ChooseNewProblem();
-        }
-        else
-        {
-            Debug.Log("Incorrect");
+            if (CheckSolution())
+            {
+                Debug.Log("Correct");
+
+                //ChooseNewProblem();
+                CreateBlock();
+            }
+            else
+            {
+                Debug.Log("Incorrect");
+            }
         }
     }
 
@@ -86,11 +118,25 @@ public class MathsGameManager : MonoBehaviour
         if (currentSolution.Contains("-"))
         {
             currentSolution = currentSolution.Replace("-", "");
+            numberButtons[9].GetComponent<SpriteRenderer>().sprite = negativeButtonSprites[0];
+
+            if (currentSolution == "")
+            {
+                currentSolution = "0";
+            }
+
             Debug.Log("Solution Made Positive");
         }
         else
         {
+            if (currentSolution == "0")
+            {
+                currentSolution = "";
+            }
+
             currentSolution = "-" + currentSolution;
+            numberButtons[9].GetComponent<SpriteRenderer>().sprite = negativeButtonSprites[1];
+
             Debug.Log("Solution Made Negative");
         }
 
@@ -116,6 +162,7 @@ public class MathsGameManager : MonoBehaviour
     public void ClearSolution()
     {
         currentSolution = "0";
+        numberButtons[9].GetComponent<SpriteRenderer>().sprite = negativeButtonSprites[0];
 
         DisplaySolution();
 
@@ -141,14 +188,47 @@ public class MathsGameManager : MonoBehaviour
 
     public void GetProblems()
     {
-        Debug.Log("Get Problems From File");
+        string path = "Assets/Resources/maths_problems.txt";
+
+        if (!File.Exists(path))
+        {
+            Debug.Log("File not found at: " + path);
+            return;
+        }
+
+        StreamReader reader = new StreamReader(path);
+        string line;
+
+        while ((line = reader.ReadLine()) != null)
+        {
+            if (IsValidProblem(line))
+            {
+                problems.Add(line.ToLower());
+            }
+        }
+
+        reader.Close();
+    }
+
+    public bool IsValidProblem(string inputProblem)
+    {
+        if (inputProblem.Split('=').Length - 1 == 1)
+        {
+            Debug.Log(inputProblem + " is a valid problem");
+            return true;
+        }
+        else
+        {
+            Debug.Log(inputProblem + " is an invalid problem");
+            return false;
+        }
     }
 
     public void ChooseNewProblem()
     {
         ClearSolution();
 
-        int i = Random.Range(0, problems.Length);
+        int i = Random.Range(0, problems.Count);
         string tempString = problems[i];
 
         currentProblem = tempString.Split('=')[0];
@@ -164,5 +244,72 @@ public class MathsGameManager : MonoBehaviour
         solutionText.text = currentSolution;
 
         Debug.Log("Displayed Problem");
+    }
+
+    public IEnumerator Timer()
+    {
+        yield return new WaitForSeconds(1);
+    }
+
+    public IEnumerator BlockLoop()
+    {
+        while (isDroppingBlock)
+        {
+            ControlBlock();
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        AdjustPosition();
+        CalculateHighestPoint();
+
+        Debug.Log("Block Finished");
+        ChooseNewProblem();
+    }
+    
+    public void CreateBlock()
+    {
+        isDroppingBlock = true;
+
+        currentBlock = Instantiate(blockPrefab, blockSpawnPosition.transform.position, Quaternion.identity);
+
+        Debug.Log("Created Block");
+
+        StartCoroutine(BlockLoop());
+    }
+
+    public void ControlBlock()
+    {
+
+    }
+
+    public void BlockLanded()
+    {
+        isDroppingBlock = false;
+
+        Debug.Log("Block Landed");
+    }
+
+    public void AdjustPosition()
+    {
+        //change the move to be not instant
+        viewHolder.transform.position += new Vector3(0, blockPrefab.GetComponent<SpriteRenderer>().bounds.size.y, 0);
+
+        Debug.Log("Adjusted Position");
+    }
+
+    public void CalculateHighestPoint()
+    {
+        Debug.Log("Highest Point Calculated");
+    }
+
+    public void AddScore(float scoreToAdd)
+    {
+
+    }
+
+    public void CalculateFinalScore()
+    {
+
     }
 }
