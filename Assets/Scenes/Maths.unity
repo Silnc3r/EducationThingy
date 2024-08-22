@@ -206,7 +206,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!61 &95381491
 BoxCollider2D:
@@ -1171,7 +1171,7 @@ RectTransform:
   m_Children:
   - {fileID: 1472015326}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1699,10 +1699,18 @@ MonoBehaviour:
   - {fileID: 1190714527, guid: 5ef32f32b5604e949818d4e9c1c88c42, type: 3}
   - {fileID: -925484495, guid: 5ef32f32b5604e949818d4e9c1c88c42, type: 3}
   blockPrefab: {fileID: 1070054140245585397, guid: adcc5213092f0094fa2a0400497de9be, type: 3}
-  blockColour: []
+  blockColour:
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 0, g: 1, b: 0, a: 1}
+  - {r: 0, g: 0.5019608, b: 1, a: 1}
+  - {r: 1, g: 0.3764706, b: 0, a: 1}
+  - {r: 1, g: 1, b: 0, a: 1}
+  - {r: 0.5019608, g: 0, b: 1, a: 1}
   blockSpawnPosition: {fileID: 1236225914}
+  furthestMove: {x: -3.5, y: -5.5}
+  moveDir: 0
   blockFallSpeed: 0
-  blockMoveSpeed: 0
+  blockMoveSpeed: 10
   currentBlock: {fileID: 0}
   isDroppingBlock: 0
   highestPoint: 0
@@ -1950,13 +1958,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1236225914}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -4.5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 1
   m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_Father: {fileID: 1461137416}
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &1236225916
 SpriteRenderer:
@@ -2175,8 +2183,9 @@ Transform:
   m_Children:
   - {fileID: 265881534}
   - {fileID: 958212526}
+  - {fileID: 1236225915}
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1472015325
 GameObject:
@@ -2574,7 +2583,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1928571364
 GameObject:

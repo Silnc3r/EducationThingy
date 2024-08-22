@@ -21,6 +21,9 @@ public class MathsGameManager : MonoBehaviour
 
     public GameObject blockSpawnPosition;
 
+    public Vector2 furthestMove; // furthest position in x, x is positive, y is negative
+    public bool moveDir; // false is left
+
     public float blockFallSpeed;
     public float blockMoveSpeed;
 
@@ -79,6 +82,67 @@ public class MathsGameManager : MonoBehaviour
                 }
             }
         }
+
+        if (!isDroppingBlock)
+        {
+            foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
+            {
+                if (Input.GetKeyDown(keyCode))
+                {
+                    if (NumberCheck(keyCode.ToString()))
+                    {
+                        string pressedNumberString = keyCode.ToString();
+                        //Debug.Log(pressedNumberString);
+                        if (pressedNumberString.Contains("Alpha"))
+                        {
+                            pressedNumberString = pressedNumberString.Replace("Alpha", "");
+                        }
+                        //Debug.Log(pressedNumberString);
+
+                        int pressedNumber = int.Parse(pressedNumberString);
+                        AddNumberToSolution(pressedNumber);
+                    }
+                    else if (keyCode.ToString() == "Minus")
+                    {
+                        MakeSolutionNegative();
+                    }
+                    else if (keyCode.ToString() == "Return")
+                    {
+                        EnterSolution();
+                    }
+                }
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown("space"))
+            {
+                ReleaseBlock();
+            }
+        }
+    }
+
+    public bool NumberCheck(string possibleNumber)
+    {
+        if (possibleNumber.Contains("Alpha"))
+        {
+            possibleNumber = possibleNumber.Replace("Alpha", "");
+        }
+
+        if (possibleNumber == "0" ||
+            possibleNumber == "1" ||
+            possibleNumber == "2" ||
+            possibleNumber == "3" ||
+            possibleNumber == "4" ||
+            possibleNumber == "5" ||
+            possibleNumber == "6" ||
+            possibleNumber == "7" ||
+            possibleNumber == "8" ||
+            possibleNumber == "9")
+        {
+            return true;
+        }
+        else return false;
     }
 
     public void EnterSolution()
@@ -125,7 +189,7 @@ public class MathsGameManager : MonoBehaviour
                 currentSolution = "0";
             }
 
-            Debug.Log("Solution Made Positive");
+            //Debug.Log("Solution Made Positive");
         }
         else
         {
@@ -137,7 +201,7 @@ public class MathsGameManager : MonoBehaviour
             currentSolution = "-" + currentSolution;
             numberButtons[9].GetComponent<SpriteRenderer>().sprite = negativeButtonSprites[1];
 
-            Debug.Log("Solution Made Negative");
+            //Debug.Log("Solution Made Negative");
         }
 
         DisplaySolution();
@@ -156,7 +220,7 @@ public class MathsGameManager : MonoBehaviour
 
         DisplaySolution();
 
-        Debug.Log("Removed Last Number");
+        //Debug.Log("Removed Last Number");
     }
 
     public void ClearSolution()
@@ -166,7 +230,7 @@ public class MathsGameManager : MonoBehaviour
 
         DisplaySolution();
 
-        Debug.Log("Solution Cleared");
+        //Debug.Log("Solution Cleared");
     }
 
     public void AddNumberToSolution(int number)
@@ -183,7 +247,7 @@ public class MathsGameManager : MonoBehaviour
         DisplaySolution();
 
         Debug.Log("Added: " + number);
-        Debug.Log("New Answer: " + currentSolution);
+        //Debug.Log("New Answer: " + currentSolution);
     }
 
     public void GetProblems()
@@ -236,14 +300,14 @@ public class MathsGameManager : MonoBehaviour
 
         problemText.text = currentProblem;
 
-        Debug.Log("Chose New Problem: " + currentProblem + " The Solution Is: " + correctSolution);
+        //Debug.Log("Chose New Problem: " + currentProblem + " The Solution Is: " + correctSolution);
     }
 
     public void DisplaySolution()
     {
         solutionText.text = currentSolution;
 
-        Debug.Log("Displayed Problem");
+        //Debug.Log("Displayed Problem");
     }
 
     public IEnumerator Timer()
@@ -261,9 +325,8 @@ public class MathsGameManager : MonoBehaviour
         }
 
         AdjustPosition();
-        CalculateHighestPoint();
 
-        Debug.Log("Block Finished");
+        //Debug.Log("Block Finished");
         ChooseNewProblem();
     }
     
@@ -272,6 +335,7 @@ public class MathsGameManager : MonoBehaviour
         isDroppingBlock = true;
 
         currentBlock = Instantiate(blockPrefab, blockSpawnPosition.transform.position, Quaternion.identity);
+        currentBlock.GetComponent<SpriteRenderer>().color = blockColour[Random.Range(0, blockColour.Length)];
 
         Debug.Log("Created Block");
 
@@ -280,14 +344,38 @@ public class MathsGameManager : MonoBehaviour
 
     public void ControlBlock()
     {
+        //moveDir false is left, true is right
+        if (currentBlock.transform.position.x > furthestMove.x)
+        {
+            moveDir = true;
+        }else if (currentBlock.transform.position.x < furthestMove.y)
+        {
+            moveDir = false;
+        }
 
+        int moveMultiplier = 1;
+        if (moveDir)
+        {
+            moveMultiplier = -1;
+        }
+
+        currentBlock.transform.position += new Vector3(blockMoveSpeed * moveMultiplier * Time.deltaTime, blockFallSpeed * Time.deltaTime, 0);
+    }
+
+    public void ReleaseBlock()
+    {
+        isDroppingBlock = false;
+        currentBlock.GetComponent<Rigidbody2D>().gravityScale = 1;
+        //maybe increase scale but turn off rotation
+        Debug.Log("Release Block");
     }
 
     public void BlockLanded()
     {
         isDroppingBlock = false;
+        CalculateHighestPoint();
 
-        Debug.Log("Block Landed");
+        //Debug.Log("Block Landed");
     }
 
     public void AdjustPosition()
@@ -300,6 +388,8 @@ public class MathsGameManager : MonoBehaviour
 
     public void CalculateHighestPoint()
     {
+        Debug.Log(currentBlock.GetComponent<SpriteRenderer>().bounds.max.y);
+
         Debug.Log("Highest Point Calculated");
     }
 
