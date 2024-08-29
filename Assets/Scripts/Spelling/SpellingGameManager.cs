@@ -133,6 +133,11 @@ public class SpellingGameManager : MonoBehaviour
         targetWord = targetWordList[i];
     }
 
+    public void GameEnd()
+    {
+
+    }
+
     public void DisplayTargetWord()
     {
         foreach(Transform child in targetWordParent.transform)
@@ -212,51 +217,36 @@ public class SpellingGameManager : MonoBehaviour
     public void SpawnLetter()
     {
         int weightTotal = 0;
-        int currentLetterWeight = 0;
+        int[] letterWeights = new int[letters.Length];
 
-        // goes through each letter
+        // Calculate weights for each letter
         for (int i = 0; i < letters.Length; i++)
         {
-            //resets the weight for the next letter
-            currentLetterWeight = 0;
+            int currentLetterWeight = letterWeight[i];
 
-            // if the letter is the current letter needed
             if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
             {
-                //Debug.Log(targetWord[wordProgress]);
-                currentLetterWeight += weightAdjustment; // add the weight to the current letter needed
+                currentLetterWeight += weightAdjustment;
                 Debug.Log("Current Letter: " + NumberToLetter(i));
             }
 
-            // if the letter is still to come in the word
-            //Debug.Log(wordProgress);
-            //Debug.Log(targetWord.Length);
-            for (int j = wordProgress; j < targetWord.Length; j++) // BUG IS CURRENTLY MAKING IT DO THE FIRST LETTERS INSTEAD OF THE CORRECT LETTERS - hope makes sense for future
+            for (int j = wordProgress; j < targetWord.Length; j++)
             {
-                /*if (j == i)
-                {
-                    currentLetterWeight += weightAdjustment; // add the weight to letters left in the word
-                    Debug.Log("Letter: " + NumberToLetter(i) + " is in the word: " + targetWord);
-                }*/
-
                 if (NumberToLetter(i) == targetWord[j].ToString().ToLower())
                 {
                     currentLetterWeight += weightAdjustment;
                     Debug.Log("Letter: " + NumberToLetter(i) + " is in the word: " + targetWord);
                 }
             }
-            // all letters get their base value
-            currentLetterWeight += letterWeight[i];
 
-            Debug.Log("Letter: " + NumberToLetter(i) + " : " + currentLetterWeight);
-
-            //adds the current letter weight to the total weight of all letters
+            letterWeights[i] = currentLetterWeight;
             weightTotal += currentLetterWeight;
-             
+            Debug.Log(i + " : Letter: " + NumberToLetter(i) + " : " + currentLetterWeight + " : " + weightTotal);
         }
 
+        // Choose a letter based on weights
         int chosenLetter = -1;
-        int letterInt = Random.Range(0,weightTotal);
+        int letterInt = Random.Range(0, weightTotal);
         int weightProgress = 0;
 
         Debug.Log(letterInt);
@@ -264,29 +254,16 @@ public class SpellingGameManager : MonoBehaviour
 
         for (int i = 0; i < letters.Length; i++)
         {
-            foreach (char l in targetWord)
-            {
-                if (LetterToNumber(l.ToString()) == i)
-                {
-                    weightProgress += weightAdjustment;
-                }
-            }
-            if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
-            {
-                weightProgress += weightAdjustment;
-            }
-            weightProgress += letterWeight[i];
+            weightProgress += letterWeights[i];
 
-            if (weightProgress >= letterInt)
+            if (weightProgress > letterInt)
             {
                 chosenLetter = i;
                 break;
             }
         }
 
-        //determine position of new letter
-
-        //get either side of letter holder
+        // Determine position of new letter
         float leftPos = letterHolder.GetComponent<Collider2D>().bounds.max.x;
         float rightPos = letterHolder.GetComponent<Collider2D>().bounds.min.x;
         float vertPos = letterHolder.transform.position.y;
@@ -294,8 +271,12 @@ public class SpellingGameManager : MonoBehaviour
 
         Vector3 newPos = new Vector3(horPos, vertPos, 0);
 
-        //Debug.Log(chosenLetter);
-        if (chosenLetter == -1) { Debug.Log(letterInt + " : " + weightProgress + " : " + weightTotal); }
+        if (chosenLetter == -1)
+        {
+            Debug.LogError($"Failed to choose a letter: {letterInt} : {weightProgress} : {weightTotal}");
+            return;
+        }
+
         GameObject newLetter = Instantiate(letters[chosenLetter], newPos, Quaternion.identity, letterHolder.transform);
         newLetter.GetComponent<Rigidbody2D>().velocity = new Vector3(newLetter.GetComponent<Rigidbody2D>().velocity.x, letterFallSpeed);
         currentLetters.Add(NumberToLetter(chosenLetter));
@@ -355,6 +336,8 @@ public class SpellingGameManager : MonoBehaviour
                 yield return new WaitForSeconds(1f);
             }
         }
+
+        GameEnd();
     }
 
     public void ScoreUpdate(float change)
