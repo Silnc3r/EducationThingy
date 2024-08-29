@@ -252,26 +252,40 @@ public class MathsGameManager : MonoBehaviour
 
     public void GetProblems()
     {
-        string path = "Assets/Resources/maths_problems.txt";
+        string path = Path.Combine(Application.streamingAssetsPath, "maths_problems.txt");
 
         if (!File.Exists(path))
         {
-            Debug.Log("File not found at: " + path);
+            Debug.LogError("File not found at: " + path);
             return;
         }
 
-        StreamReader reader = new StreamReader(path);
-        string line;
+        string fileContents = "";
 
-        while ((line = reader.ReadLine()) != null)
+        if (path.Contains("://") || path.Contains(":///"))
         {
-            if (IsValidProblem(line))
-            {
-                problems.Add(line.ToLower());
-            }
+            // For Android or WebGL, where files may be accessed via URL
+            WWW reader = new WWW(path);
+            while (!reader.isDone) { }
+            fileContents = reader.text;
+        }
+        else
+        {
+            // For standalone platforms or Editor
+            fileContents = File.ReadAllText(path);
         }
 
-        reader.Close();
+        using (StringReader reader = new StringReader(fileContents))
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (IsValidProblem(line))
+                {
+                    problems.Add(line.ToLower());
+                }
+            }
+        }
     }
 
     public bool IsValidProblem(string inputProblem)

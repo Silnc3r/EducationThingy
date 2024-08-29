@@ -67,26 +67,40 @@ public class SpellingGameManager : MonoBehaviour
 
     public void GetWordList()
     {
-        string path = "Assets/Resources/words.txt";
+        string path = Path.Combine(Application.streamingAssetsPath, "words.txt");
 
         if (!File.Exists(path))
         {
-            Debug.Log("File not found at: " + path);
+            Debug.LogError("File not found at: " + path);
             return;
         }
 
-        StreamReader reader = new StreamReader(path);
-        string line;
+        string fileContents = "";
 
-        while ((line = reader.ReadLine()) != null)
+        if (path.Contains("://") || path.Contains(":///"))
         {
-            if (IsValidWord(line))
-            {
-                targetWordList.Add(line.ToLower());
-            }
+            // For Android or WebGL, where files may be accessed via URL
+            WWW reader = new WWW(path);
+            while (!reader.isDone) { }
+            fileContents = reader.text;
+        }
+        else
+        {
+            // For standalone platforms or Editor
+            fileContents = File.ReadAllText(path);
         }
 
-        reader.Close();
+        using (StringReader reader = new StringReader(fileContents))
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (IsValidWord(line))
+                {
+                    targetWordList.Add(line.ToLower());
+                }
+            }
+        }
     }
 
     private bool IsValidWord(string word)
@@ -200,25 +214,43 @@ public class SpellingGameManager : MonoBehaviour
         int weightTotal = 0;
         int currentLetterWeight = 0;
 
+        // goes through each letter
         for (int i = 0; i < letters.Length; i++)
         {
-            for (int j = wordProgress; i < targetWord.Length; j++)
-            {
-                if (j == i)
-                {
-                    currentLetterWeight += weightAdjustment; // add the weight to letters left in the word
-                }
-            }
+            //resets the weight for the next letter
+            currentLetterWeight = 0;
+
+            // if the letter is the current letter needed
             if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
             {
                 //Debug.Log(targetWord[wordProgress]);
-                currentLetterWeight += weightAdjustment/2; // add half the weight to the current letter needed
+                currentLetterWeight += weightAdjustment; // add the weight to the current letter needed
+                Debug.Log("Current Letter: " + NumberToLetter(i));
             }
 
-            currentLetterWeight += letterWeight[i]; // all letters get their base value
+            // if the letter is still to come in the word
+            //Debug.Log(wordProgress);
+            //Debug.Log(targetWord.Length);
+            for (int j = wordProgress; j < targetWord.Length; j++) // BUG IS CURRENTLY MAKING IT DO THE FIRST LETTERS INSTEAD OF THE CORRECT LETTERS - hope makes sense for future
+            {
+                /*if (j == i)
+                {
+                    currentLetterWeight += weightAdjustment; // add the weight to letters left in the word
+                    Debug.Log("Letter: " + NumberToLetter(i) + " is in the word: " + targetWord);
+                }*/
+
+                if (NumberToLetter(i) == targetWord[j].ToString().ToLower())
+                {
+                    currentLetterWeight += weightAdjustment;
+                    Debug.Log("Letter: " + NumberToLetter(i) + " is in the word: " + targetWord);
+                }
+            }
+            // all letters get their base value
+            currentLetterWeight += letterWeight[i];
 
             Debug.Log("Letter: " + NumberToLetter(i) + " : " + currentLetterWeight);
 
+            //adds the current letter weight to the total weight of all letters
             weightTotal += currentLetterWeight;
              
         }
@@ -226,6 +258,9 @@ public class SpellingGameManager : MonoBehaviour
         int chosenLetter = -1;
         int letterInt = Random.Range(0,weightTotal);
         int weightProgress = 0;
+
+        Debug.Log(letterInt);
+        Debug.Log(weightTotal);
 
         for (int i = 0; i < letters.Length; i++)
         {
@@ -238,7 +273,7 @@ public class SpellingGameManager : MonoBehaviour
             }
             if (NumberToLetter(i) == targetWord[wordProgress].ToString().ToLower())
             {
-                weightProgress += weightAdjustment/2;
+                weightProgress += weightAdjustment;
             }
             weightProgress += letterWeight[i];
 
@@ -266,12 +301,6 @@ public class SpellingGameManager : MonoBehaviour
         currentLetters.Add(NumberToLetter(chosenLetter));
         currentLetterObjs.Add(newLetter);
         newLetter.GetComponent<LetterController>().letter = NumberToLetter(chosenLetter);
-
-        //spawns letters as children in the letter holder object
-        //determine which letter to spawn
-        //temporarily adjust the weight of the letters in the word so it's less likely useless letters show up
-        //spawn letter
-        //letters fall (of their own accord)
     }
 
     public void TimerStart()
