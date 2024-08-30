@@ -4,6 +4,8 @@ using UnityEngine;
 using TMPro;
 using JetBrains.Annotations;
 using System.IO;
+using static System.Runtime.CompilerServices.RuntimeHelpers;
+using UnityEditor.Animations;
 
 public class MathsGameManager : MonoBehaviour
 {
@@ -38,9 +40,13 @@ public class MathsGameManager : MonoBehaviour
     public float scoreMultiplier;
     public float multiplierBreakTime;
 
-    public float timerSeconds;
-    public float timerMinutes;
-    public float timerStarttime; // total length of timer in seconds
+    [Header("GamePlay Information")]
+    public bool isPlaying;
+
+    public float timerLength;
+    public float timerCurrent;
+    public float minutes { get; private set; }
+    public float seconds { get; private set; }
 
     [Header("References")]
     public GameObject viewHolder;
@@ -56,8 +62,16 @@ public class MathsGameManager : MonoBehaviour
     public TMP_Text timerText;
     public TMP_Text scoreText;
 
+    public TMP_Text finalScore;
+    public GameObject gameplayElements;
+    public GameObject gameplayUI;
+    public GameObject gameendUI;
+
     private void Start()
     {
+        isPlaying = true;
+        TimerStart();
+
         GetProblems();
         ChooseNewProblem();
     }
@@ -110,7 +124,16 @@ public class MathsGameManager : MonoBehaviour
                     {
                         EnterSolution();
                     }
+                    /*else if (keyCode.ToString() == "Backspace")
+                    {
+                        RemoveNumberFromSolution();
+                    }*/
+                    //Debug.Log(keyCode.ToString());
                 }
+            }
+            if (Input.GetKeyDown("backspace"))
+            {
+                RemoveNumberFromSolution();
             }
         }
         else
@@ -324,9 +347,76 @@ public class MathsGameManager : MonoBehaviour
         //Debug.Log("Displayed Problem");
     }
 
+    public void TimerStart()
+    {
+        timerCurrent = timerLength;
+        StartCoroutine(Timer());
+    }
+
+    public void TimerDisplay()
+    {
+        string secondsString = "";
+        string minutesString = "";
+
+        if (seconds < 10)
+        {
+            secondsString = "0" + seconds.ToString();
+        }
+        else
+        {
+            secondsString = seconds.ToString();
+        }
+        if (minutes < 10)
+        {
+            minutesString = "0" + minutes.ToString();
+        }
+        else
+        {
+            minutesString = minutes.ToString();
+        }
+
+        timerText.text = minutesString + " : " + secondsString;
+    }
+
     public IEnumerator Timer()
     {
-        yield return new WaitForSeconds(1);
+        while (timerCurrent > 0)
+        {
+            if (isPlaying)
+            {
+                timerCurrent--;
+
+                seconds = timerCurrent;
+                minutes = 0;
+                while (seconds > 60)
+                {
+                    seconds -= 60;
+                    minutes++;
+                }
+
+                TimerDisplay();
+
+                yield return new WaitForSeconds(1f);
+            }
+        }
+
+        GameEnd();
+    }
+
+    public void GameEnd()
+    {
+        //gameplayElements.SetActive(false);
+        for (int i = 0; i < gameplayElements.transform.childCount; i++)
+        {
+            if (gameplayElements.transform.GetChild(i).gameObject != Camera.main.gameObject)
+            {
+                gameplayElements.transform.GetChild(i).gameObject.SetActive(false);
+            }
+        }
+
+        gameplayUI.SetActive(false);
+        gameendUI.SetActive(true);
+        finalScore.text = scoreText.text;
     }
 
     public IEnumerator BlockLoop()
@@ -400,7 +490,7 @@ public class MathsGameManager : MonoBehaviour
         Debug.Log("Adjusted Position");
     }
 
-    public void CalculateHighestPoint()
+    public void CalculateHighestPoint() // might just replace this with number of blocks in tower
     {
         Debug.Log(currentBlock.GetComponent<SpriteRenderer>().bounds.max.y);
 

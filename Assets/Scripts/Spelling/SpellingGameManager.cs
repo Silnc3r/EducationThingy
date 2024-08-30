@@ -46,6 +46,11 @@ public class SpellingGameManager : MonoBehaviour
     public TMP_Text scoreText;
     public TMP_Text timerText;
 
+    public TMP_Text finalScore;
+    public GameObject gameplayElements;
+    public GameObject gameplayUI;
+    public GameObject gameendUI;
+
     private void Start()
     {
         GetWordList();
@@ -135,7 +140,10 @@ public class SpellingGameManager : MonoBehaviour
 
     public void GameEnd()
     {
-
+        Destroy(gameplayElements);
+        finalScore.text = scoreText.text;
+        Destroy(gameplayUI);
+        gameendUI.SetActive(true);
     }
 
     public void DisplayTargetWord()
