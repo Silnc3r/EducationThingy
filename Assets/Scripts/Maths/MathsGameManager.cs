@@ -1,11 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
-using JetBrains.Annotations;
 using System.IO;
-using static System.Runtime.CompilerServices.RuntimeHelpers;
-using UnityEditor.Animations;
+using TMPro;
 
 public class MathsGameManager : MonoBehaviour
 {
@@ -33,12 +30,13 @@ public class MathsGameManager : MonoBehaviour
     public bool isDroppingBlock;
 
     public float highestPoint;
+    public float lasthighestPoint;
 
     public float score;
     public float scoreForBlockSuccess;
     public float scoreForBlockFailure;
-    public float scoreMultiplier;
-    public float multiplierBreakTime;
+    //public float scoreMultiplier;
+    //public float multiplierBreakTime;
 
     [Header("GamePlay Information")]
     public bool isPlaying;
@@ -62,6 +60,9 @@ public class MathsGameManager : MonoBehaviour
     public TMP_Text timerText;
     public TMP_Text scoreText;
 
+    public TMP_Text countdownText;
+    public TMP_Text updateText;
+
     public TMP_Text finalScore;
     public GameObject gameplayElements;
     public GameObject gameplayUI;
@@ -69,78 +70,113 @@ public class MathsGameManager : MonoBehaviour
 
     private void Start()
     {
-        isPlaying = true;
-        TimerStart();
+        //Application.targetFrameRate = 60;
 
         GetProblems();
         ChooseNewProblem();
+
+        isPlaying = false;
+        StartCoroutine(Countdown());
+    }
+
+    public IEnumerator Countdown()
+    {
+        //Debug.Log("Countdown Start");
+
+        int time = 3;
+
+        countdownText.gameObject.SetActive(true);
+
+        while (time > 0)
+        {
+            countdownText.text = time.ToString();
+
+            yield return new WaitForSeconds(1);
+            time--;
+        }
+
+        countdownText.gameObject.SetActive(false);
+
+        updateText.gameObject.SetActive(true);
+        updateText.text = "Begin";
+
+        isPlaying = true;
+        TimerStart();
+
+        yield return new WaitForSeconds(0.5f);
+        updateText.gameObject.SetActive(false);
+
+        //Debug.Log("Countdown End");
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (isPlaying)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
-
-            if (hit.collider != null)
+            if (Input.GetMouseButtonDown(0))
             {
-                //Debug.Log("CLICKED " + hit.collider.name);
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit2D hit = Physics2D.Raycast(ray.origin, ray.direction);
 
-                foreach (GameObject nb in numberButtons)
+                if (hit.collider != null)
                 {
-                    if (hit.collider.name == nb.name)
-                    {
-                        nb.GetComponent<NumberButtonController>().Interact();
-                    }
-                }
-            }
-        }
+                    //Debug.Log("CLICKED " + hit.collider.name);
 
-        if (!isDroppingBlock)
-        {
-            foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
-            {
-                if (Input.GetKeyDown(keyCode))
-                {
-                    if (NumberCheck(keyCode.ToString()))
+                    foreach (GameObject nb in numberButtons)
                     {
-                        string pressedNumberString = keyCode.ToString();
-                        //Debug.Log(pressedNumberString);
-                        if (pressedNumberString.Contains("Alpha"))
+                        if (hit.collider.name == nb.name)
                         {
-                            pressedNumberString = pressedNumberString.Replace("Alpha", "");
+                            nb.GetComponent<NumberButtonController>().Interact();
                         }
-                        //Debug.Log(pressedNumberString);
-
-                        int pressedNumber = int.Parse(pressedNumberString);
-                        AddNumberToSolution(pressedNumber);
                     }
-                    else if (keyCode.ToString() == "Minus")
-                    {
-                        MakeSolutionNegative();
-                    }
-                    else if (keyCode.ToString() == "Return")
-                    {
-                        EnterSolution();
-                    }
-                    /*else if (keyCode.ToString() == "Backspace")
-                    {
-                        RemoveNumberFromSolution();
-                    }*/
-                    //Debug.Log(keyCode.ToString());
                 }
             }
-            if (Input.GetKeyDown("backspace"))
+
+            if (!isDroppingBlock)
             {
-                RemoveNumberFromSolution();
+                foreach (KeyCode keyCode in System.Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (Input.GetKeyDown(keyCode))
+                    {
+                        if (NumberCheck(keyCode.ToString()))
+                        {
+                            string pressedNumberString = keyCode.ToString();
+                            //Debug.Log(pressedNumberString);
+                            if (pressedNumberString.Contains("Alpha"))
+                            {
+                                pressedNumberString = pressedNumberString.Replace("Alpha", "");
+                            }
+                            //Debug.Log(pressedNumberString);
+
+                            int pressedNumber = int.Parse(pressedNumberString);
+                            AddNumberToSolution(pressedNumber);
+                        }
+                        else if (keyCode.ToString() == "Minus")
+                        {
+                            MakeSolutionNegative();
+                        }
+                        else if (keyCode.ToString() == "Return")
+                        {
+                            EnterSolution();
+                        }
+                        /*else if (keyCode.ToString() == "Backspace")
+                        {
+                            RemoveNumberFromSolution();
+                        }*/
+                        //Debug.Log(keyCode.ToString());
+                    }
+                }
+                if (Input.GetKeyDown("backspace"))
+                {
+                    RemoveNumberFromSolution();
+                }
             }
-        }
-        else
-        {
-            if (Input.GetKeyDown("space"))
+            else
             {
-                ReleaseBlock();
+                if (Input.GetKeyDown("space"))
+                {
+                    ReleaseBlock();
+                }
             }
         }
     }
@@ -405,14 +441,17 @@ public class MathsGameManager : MonoBehaviour
 
     public void GameEnd()
     {
+        isPlaying = false;
+
         //gameplayElements.SetActive(false);
-        for (int i = 0; i < gameplayElements.transform.childCount; i++)
+        /*for (int i = 0; i < gameplayElements.transform.childCount; i++)
         {
             if (gameplayElements.transform.GetChild(i).gameObject != Camera.main.gameObject)
             {
                 gameplayElements.transform.GetChild(i).gameObject.SetActive(false);
             }
-        }
+        }*/
+        numberButtonsHolder.SetActive(false);
 
         gameplayUI.SetActive(false);
         gameendUI.SetActive(true);
@@ -427,8 +466,6 @@ public class MathsGameManager : MonoBehaviour
 
             yield return new WaitForSeconds(0.1f);
         }
-
-        AdjustPosition();
 
         //Debug.Log("Block Finished");
         ChooseNewProblem();
@@ -463,7 +500,9 @@ public class MathsGameManager : MonoBehaviour
             moveMultiplier = -1;
         }
 
-        currentBlock.transform.position += new Vector3(blockMoveSpeed * moveMultiplier * Time.deltaTime, blockFallSpeed * Time.deltaTime, 0);
+        Vector3 moveAmount = new Vector3(blockMoveSpeed * moveMultiplier * Time.deltaTime, blockFallSpeed * Time.deltaTime, 0);
+
+        currentBlock.transform.position += moveAmount;
     }
 
     public void ReleaseBlock()
@@ -479,31 +518,58 @@ public class MathsGameManager : MonoBehaviour
         isDroppingBlock = false;
         CalculateHighestPoint();
 
+        AdjustPosition();
+
+        AddScore(scoreForBlockSuccess);
+
         //Debug.Log("Block Landed");
     }
 
     public void AdjustPosition()
     {
-        //change the move to be not instant
-        viewHolder.transform.position += new Vector3(0, blockPrefab.GetComponent<SpriteRenderer>().bounds.size.y, 0);
+        float targetY = viewHolder.transform.position.y + (highestPoint - lasthighestPoint);
 
-        Debug.Log("Adjusted Position");
+        StartCoroutine(SmoothAdjustPosition(targetY));
     }
 
-    public void CalculateHighestPoint() // might just replace this with number of blocks in tower
+    private IEnumerator SmoothAdjustPosition(float targetY)
     {
-        Debug.Log(currentBlock.GetComponent<SpriteRenderer>().bounds.max.y);
+        float duration = 1.0f; // Adjust this value as needed
+        float elapsedTime = 0.0f;
 
-        Debug.Log("Highest Point Calculated");
+        Vector3 initialPosition = viewHolder.transform.position;
+        Vector3 targetPosition = new Vector3(initialPosition.x, targetY, initialPosition.z);
+
+        while (elapsedTime < duration)
+        {
+            viewHolder.transform.position = Vector3.Lerp(initialPosition, targetPosition, elapsedTime / duration);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        viewHolder.transform.position = targetPosition;
+    }
+
+    public void CalculateHighestPoint()
+    {
+        lasthighestPoint = highestPoint;
+
+        float currentBlockHighestY = currentBlock.GetComponent<SpriteRenderer>().bounds.max.y;
+
+        if (currentBlockHighestY > highestPoint)
+        {
+            highestPoint = currentBlockHighestY;
+        }
+
+        //.ToString("F3") rounds to 2 decimals, so only shows 3 decimals in the score
+        scoreText.text = "Highest Point: " + highestPoint.ToString("F3");
+
+        Debug.Log("Highest Point Calculated: " + highestPoint);
     }
 
     public void AddScore(float scoreToAdd)
     {
-
-    }
-
-    public void CalculateFinalScore()
-    {
-
+        score += scoreToAdd;
+        //scoreText.text = score.ToString();
     }
 }

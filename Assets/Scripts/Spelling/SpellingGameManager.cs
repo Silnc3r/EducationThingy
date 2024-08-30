@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using System.IO;
 using TMPro;
@@ -46,6 +45,9 @@ public class SpellingGameManager : MonoBehaviour
     public TMP_Text scoreText;
     public TMP_Text timerText;
 
+    public TMP_Text countdownText;
+    public TMP_Text updateText;
+
     public TMP_Text finalScore;
     public GameObject gameplayElements;
     public GameObject gameplayUI;
@@ -56,8 +58,38 @@ public class SpellingGameManager : MonoBehaviour
         GetWordList();
         NewWord();
         DisplayTargetWord();
+
+        StartCoroutine(Countdown());
+    }
+
+    public IEnumerator Countdown()
+    {
+        //Debug.Log("Countdown Start");
+
+        int time = 3;
+
+        countdownText.gameObject.SetActive(true);
+
+        while (time > 0)
+        {
+            countdownText.text = time.ToString();
+
+            yield return new WaitForSeconds(1);
+            time--;
+        }
+
+        countdownText.gameObject.SetActive(false);
+
+        updateText.gameObject.SetActive(true);
+        updateText.text = "Begin";
+
         StartCoroutine(SpawnLetterLoop());
         TimerStart();
+
+        yield return new WaitForSeconds(0.5f);
+        updateText.gameObject.SetActive(false);
+
+        //Debug.Log("Countdown End");
     }
 
     private void Update()
